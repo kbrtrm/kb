@@ -6,6 +6,13 @@ const pluginNavigation = require("@11ty/eleventy-navigation");
 const markdownIt = require("markdown-it");
 const markdownItAnchor = require("markdown-it-anchor");
 
+const MARKDOWN_OPTIONS =
+      {
+          html: true,
+          breaks: true,
+          linkify: true
+      };
+
 module.exports = function(eleventyConfig) {
   // Add plugins
   eleventyConfig.addPlugin(pluginRss);
@@ -36,6 +43,10 @@ module.exports = function(eleventyConfig) {
     return array.slice(0, n);
   });
 
+  eleventyConfig.addFilter("toHTML", str => {
+    return new markdownIt(MARKDOWN_OPTIONS).renderInline(str);
+  });
+
   // Return the smallest number argument
   eleventyConfig.addFilter("min", (...numbers) => {
     return Math.min.apply(null, numbers);
@@ -55,6 +66,8 @@ module.exports = function(eleventyConfig) {
 
     return [...tagSet];
   });
+  
+  eleventyConfig.setFrontMatterParsingOptions({ excerpt: true });
 
   eleventyConfig.addCollection("poems", function(collection) {
       return collection.getFilteredByGlob("/poems/*.md");
@@ -66,15 +79,12 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy("css");
 
   // Customize Markdown library and settings:
-  let markdownLibrary = markdownIt({
-    html: true,
-    breaks: true,
-    linkify: true
-  }).use(markdownItAnchor, {
+  let markdownLibrary = markdownIt(MARKDOWN_OPTIONS).use(markdownItAnchor, {
     permalink: true,
     permalinkClass: "direct-link",
     permalinkSymbol: "#"
   });
+
   eleventyConfig.setLibrary("md", markdownLibrary);
 
   // Override Browsersync defaults (used only with --serve)
